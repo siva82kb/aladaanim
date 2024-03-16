@@ -13,9 +13,13 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import platform
+if platform.system() == "Windows":
+    mpl.rc('font',**{'family':'Times New Roman', 'sans-serif': 'Arial'})
+else:
+    mpl.rc('font',**{'family':'Helvetica', 'sans-serif': 'Helvetica'})
+mpl.rcParams['toolbar'] = 'None'
 
-mpl.rc('font',**{'family':'sans-serif', 'sans-serif': 'Arial'})
-mpl.rcParams['toolbar'] = 'None' 
 
 # Supporting functions   
 def f(x): return 1 - np.exp(-np.power(x, 2) / 4)

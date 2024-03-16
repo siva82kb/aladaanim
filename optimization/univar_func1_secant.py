@@ -11,13 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
 import platform
 if platform.system() == "Windows":
     mpl.rc('font',**{'family':'Times New Roman', 'sans-serif': 'Arial'})
 else:
     mpl.rc('font',**{'family':'Helvetica', 'sans-serif': 'Helvetica'})
 mpl.rcParams['toolbar'] = 'None' 
+
 
 # Supporting functions   
 def f(x): return np.polyval([0.05, 0, 0.2, 0, 0], x) - 0.25 * np.sin(2 * x) + 1
@@ -126,6 +126,12 @@ def on_press(event):
     global xk
     ax.cla()
     axins.cla()
+
+    # Close figure if escaped.
+    if event.key == 'escape':
+        plt.close(fig)
+        return
+    
     if event.key == 'right':
         # Update solution.
         _xnew = update_soln(xk[-1], xk[-2])

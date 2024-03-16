@@ -11,11 +11,13 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import platform
+if platform.system() == "Windows":
+    mpl.rc('font',**{'family':'Times New Roman', 'sans-serif': 'Arial'})
+else:
+    mpl.rc('font',**{'family':'Helvetica', 'sans-serif': 'Helvetica'})
 
 import aladaopt
-
-mpl.rc('font',**{'family':'Helvetica', 'sans-serif': 'Helvetica'})
-mpl.rcParams['toolbar'] = 'None' 
 
 
 def reset_params():

@@ -42,8 +42,9 @@ Demonstration of a multivariate function and its variation along its gradient an
 7. **Multivariate Gradient Descent with Backtracking:** [`multivar_graddesc_backtracking.py`](optimization/multivar_graddesc_backtracking.py)
 Demonstration of the effect of backtracking line search on the convergence of the gradient descent algorithm.
 
-8. **Multivariate Optimization with different Method:** [`multivar_methods.py`](optimization/multivar_methods.py)
+8. **Multivariate Optimization with different Methods:** [`multivar_methods.py`](optimization/multivar_methods.py)
 Demonstration of the gradient descent (fixed step size), Newton's Method, and Levenberg-Marquardt method on a multivariate function.
 
-
+9. **Multivariate Optimization with Steepest Descent:** [`multivar_steepdesc.py`](optimization/multivar_steepdesc.py)
+Demonstration of the steepest descent method on a multivariate function.
 
