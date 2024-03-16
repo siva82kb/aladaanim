@@ -14,7 +14,11 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 import aladaopt
 
-mpl.rc('font',**{'family':'Helvetica', 'sans-serif': 'Helvetica'})
+import platform
+if platform.system() == "Windows":
+    mpl.rc('font',**{'family':'Times New Roman', 'sans-serif': 'Arial'})
+else:
+    mpl.rc('font',**{'family':'Helvetica', 'sans-serif': 'Helvetica'})
 mpl.rcParams['toolbar'] = 'None' 
 
 
