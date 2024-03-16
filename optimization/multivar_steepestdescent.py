@@ -1,11 +1,11 @@
 """
-Script for create an animation to demonstrate backtracking in the optimization 
-process.
+Script for create an animation to demonstrate steepest descent.
 
 Author: Sivakumar Balasubramanian
-Date: 14 March 2024
+Date: 16 March 2024
 """
 
+import sys
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -19,19 +19,18 @@ mpl.rcParams['toolbar'] = 'None'
 
 
 def reset_params():
-    global Xk, tau, ak, k
+    global Xk, ak, k
     # Reset the solution
     Xk = np.random.rand(2, 1) * 8 - 4
-    ak = 5
-    tau = 0.5
+    ak = 2
     k = 0
 
 
 def update():
     global Xk, Xbt, k, ak
-    ak = backtrack(ak=5)
     _xk = Xk[:, -1].reshape(-1, 1)
     _grad = funclass.grad(_xk[0, 0], _xk[1, 0])
+    ak = exact_search(ak=ak, dk=_grad)
     return aladaopt.GradientDescent.update(_xk, ak, _grad)
 
 
@@ -48,19 +47,26 @@ def get_search_lines(xk, dirvec):
     return _x, _y
 
 
-def backtrack(ak):
+def exact_search(ak, dk):
     global Xk, tau, k
     # Check there is previous backtracked solution.
-    _xk = Xk[:, -1]
+    _xk = Xk[:, -1].reshape(-1, 1)
+    dk = funclass.grad(_xk[0, 0], _xk[1, 0])
+    _fk = funclass.func(_xk[0, 0], _xk[1, 0])
     while True:
-        # Update the solution
+        # Get the new point
+        _xb = _xk - ak * dk
+        # Find the function value and gradient at the new point.
+        _fb = funclass.func(_xb[0, 0], _xb[1, 0])
+        _gb = funclass.grad(_xb[0, 0], _xb[1, 0])
+        _gbd = (dk.T @ _gb)[0, 0]
+        # Check current function value is less than the previous one, and if 
+        # the gradient .
+        if (_fb <= _fk and np.abs(_gbd) <= 1e-2): return ak
+        # Change step-size
         k += 1
-        _xb = (_xk.reshape(-1, 1) - ak * funclass.grad(_xk[0], _xk[1]))[:, 0]
-        # Check current function value is less than the previous one.
-        _f0 = funclass.func(_xk[0], _xk[1])
-        _f1 = funclass.func(_xb[0], _xb[1])
-        if _f1 <= _f0: return ak
-        ak *= tau
+        dak = 0.001 * np.min([1, np.max([-1, _gbd])])
+        ak = np.max([0.01, ak + dak])
 
 
 def update_text():
@@ -72,7 +78,7 @@ def update_text():
     ax2.set_ylim(-1.1, 1.2)
 
     # Text positions
-    xpos, ypos, delypos = 0.1, 0.85, 0.1
+    xpos, ypos, delypos = 0.1, 0.8, 0.1
     
     # Instruction.
     ax2.text(0.1, 1.2,
@@ -80,14 +86,24 @@ def update_text():
              fontsize=12, verticalalignment='center',
              horizontalalignment='left', color='gray', style='italic')
     ax2.text(0.1, 1.12,
-             r'Use 0-4 to select function $f(\mathbf{x})$.',
+             r'Use 0-2 to select function $f(\mathbf{x})$.',
              fontsize=12, verticalalignment='center',
              horizontalalignment='left', color='gray', style='italic')
     ax2.text(0.1, 1.04,
+             r'Use the left mouse click to select a location.',
+             fontsize=12, verticalalignment='center',
+             horizontalalignment='left', color='gray', style='italic')
+    ax2.text(0.1, 0.96,
              "Use 'r' to reset search.",
              fontsize=12, verticalalignment='center',
              horizontalalignment='left', color='gray', style='italic')
     
+    j = 0
+    ax2.text(xpos, ypos - j * delypos, f"Steepest Descent",
+             fontsize=14, backgroundcolor='tab:red', color='white')
+
+    # Method details.
+    # xpos, ypos, delypos = 0.1, 1.1, 0.1 
     j = 0
     ax2.text(xpos, ypos - j * delypos, f"Gradient Descent: Backtracking",
              fontsize=14, backgroundcolor='tab:red', color='white')
@@ -100,10 +116,11 @@ def update_text():
     ax2.text(xpos, ypos - j * delypos,
              f"Step size " + f"$\\alpha_{{{k}}} = $" + f"{ak:.3f}",
              fontsize=14)
+    
     # Minimum point
     j += 1
     _xmin = f"{np.array2string(funclass.xmin.T[0], precision=3, floatmode='fixed')}"
-    ax2.text(xpos, ypos - j * delypos, f"$\\mathbf{{x}}^*$ = " + _xmin + r"$^\top$", fontsize=14)
+    ax2.text(xpos, ypos - j * delypos, f"$\\mathbf{{x}}^{{\star}}$ = " + _xmin + r"$^\top$", fontsize=14)
 
     # Current point
     j += 1
@@ -167,20 +184,6 @@ def plot_contour():
     # Add labels and title
     ax.set_title(r"$f(\mathbf{x}) = $" + funclass.title, fontsize=18)
 
-    # Update function plot along the search direction
-    axins.cla()
-    _dir ,_fdir = get_function_along_dir(_xk[:, 0], -_grad[:, 0])
-    axins.plot(_dir[250], _fdir[250], 'tab:red', marker='o', markersize=3)
-    axins.plot(_dir, _fdir, 'black', lw=1.0, alpha=0.7)
-
-    # Find the position along the direction.
-    if Xbt is not None:
-        _t = [0.5 * ((_xb[0] - _xk[0, 0]) / -_grad[0, 0]
-                     + (_xb[1] - _xk[1, 0]) / -_grad[1, 0])
-              for _xb in Xbt.T]
-        _f = [funclass.func(_xb[0], _xb[1]) for _xb in Xbt.T]
-        axins.plot(_t, _f, 'tab:gray', marker='o', markersize=4, linestyle="None")
-
 
 def plot_dist_to_min():
     axins.cla()
@@ -198,8 +201,25 @@ def plot_dist_to_min():
     axins.spines['bottom'].set_color('#bbbbbb')
     axins.spines['left'].set_color('#bbbbbb')
     axins.tick_params(axis='both', colors='#bbbbbb')
-    axins.set_title(r"$\Vert \mathbf{x}^* - \mathbf{x}_k \Vert_2$",
+    axins.set_title(r"$\Vert \mathbf{x}^{{\star}} - \mathbf{x}_k \Vert_2$",
                     color='#000', fontsize=16)
+
+
+# Handling mouse click events
+def on_mouse_click(event):
+    # Set xk to the mouse click location
+    global Xk, ax, k, fig
+    # Reset the solution
+    Xk = np.array([event.xdata, event.ydata]).reshape(-1, 1)
+    ak = 2
+    k = 0
+    ax.cla()
+    
+    # Draw the plot and text
+    update_text()
+    plot_contour()
+    plot_dist_to_min()
+    fig.canvas.draw()
 
 
 # Handling key press events
@@ -221,13 +241,6 @@ def on_press(event):
     # Return if no function has been selected.
     if funclass is None:
         return
-    
-    # Choose which mwthod to use for minimization.
-    if event.key in method_dict.keys():
-        methodclass = method_dict[event.key]
-        # Reset variables
-        reset_params()
-        ax.cla()
     
     # Chekc if the solution needs to be updated.
     if event.key == 'right':
@@ -253,8 +266,8 @@ def on_press(event):
     
     # Save plot
     if event.key == 'ctrl+s':
-        fig.savefig("multivar_backtracking.png", dpi=300, bbox_inches='tight')
-        fig.savefig("multivar_backtracking.pdf", bbox_inches='tight')
+        fig.savefig("multivar_steepdesc.png", dpi=300, bbox_inches='tight')
+        fig.savefig("multivar_steepdesc.pdf", bbox_inches='tight')
 
 
 if __name__ == "__main__":
@@ -263,22 +276,10 @@ if __name__ == "__main__":
         '0': aladaopt.Circle(xmin=np.array([2, 1])),
         '1': aladaopt.Ellipse(xmin=np.array([1, 0.5]),
                             Q=np.array([[3, 1], [1, 2]])),
-        '2': aladaopt.Rosenbrock(a=1, b=5),
-        '3': aladaopt.Quartic(xmin=np.array([2, 1]), a=2, b=5, c=3),
-        '4': aladaopt.FlippedGaussian(xmin=np.array([0, 0]),
-                                      Q=np.linalg.inv(np.array([[5, 2], [2, 3]])))
-    }
-
-    # Method dictionary
-    method_dict = {
-        'ctrl+0': aladaopt.GradientDescent,
-        'ctrl+1': aladaopt.NewtonRaphson,
-        'ctrl+2': aladaopt.LevenbergMarquardt
     }
 
     # Function and Method ID
     funclass = function_dict["0"]
-    methodclass = method_dict["ctrl+0"]
 
     # Create the figure and the axis.
     fig = plt.figure(figsize=(15, 8))
@@ -293,19 +294,20 @@ if __name__ == "__main__":
     # Initialize the solution
     Xk = None
     Xbt = None
-    ak = 5.0
+    ak = 2
     k = 0
-    tau = 0.5
+    tau = 0.99
     reset_params()
-
-    # Plot stuff
+    
+    # Draw the plot and text
     update_text()
     plot_contour()
     plot_dist_to_min()
     fig.canvas.draw()
 
     # Create the figure and the axis.
-    fig.canvas.manager.set_window_title('ALADA Optimization Animations: Backtracking')
+    fig.canvas.manager.set_window_title('ALADA Optimization Animations: Steepest Descent')
     fig.canvas.mpl_connect('key_press_event', on_press)
+    fig.canvas.mpl_connect('button_press_event', on_mouse_click)
     plt.tight_layout(pad=3)
     plt.show()
