@@ -270,6 +270,12 @@ def on_press(event):
     if event.key == 'ctrl+s':
         fig.savefig("multivar_steepdesc.png", dpi=300, bbox_inches='tight')
         fig.savefig("multivar_steepdesc.pdf", bbox_inches='tight')
+    
+    # Draw the plot and text
+    update_text()
+    plot_contour()
+    plot_dist_to_min()
+    fig.canvas.draw()
 
 
 if __name__ == "__main__":

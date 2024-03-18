@@ -125,7 +125,6 @@ def plot_contour():
     _m = _dy / _dx
     _x = np.array([-10, 10])
     _y = _m * _x + _fdir[250]
-    print(_dx, _dy, _m, _x, _y)
     axins.plot(_x, _y, 'tab:blue', lw=1.0, linestyle='-', label=r"$\frac{d\phi_{\mathbf{d}_{\theta}}(0)}{dt}$")
 
     # Remove top and right spines

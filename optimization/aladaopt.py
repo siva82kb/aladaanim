@@ -179,3 +179,64 @@ class LevenbergMarquardt:
     @staticmethod
     def update(xk, grad, hess, mu):
         return xk - np.linalg.solve(hess + mu * np.eye(hess.shape[0]), grad)
+
+
+# Equality contraint functions
+class ParabolaEc():
+    name = "Parabola"
+
+    @staticmethod
+    def func(t):
+        return np.array([[t, (t / 2)**2]]).T
+
+    @staticmethod
+    def normal(x1, x2):
+        return np.array([[0.5 * x1, -1]]).T
+    
+    @staticmethod
+    def tangent(x1, x2):
+        return np.array([[1, 0.5 * x1]]).T
+    
+    @staticmethod
+    def equation():
+        return r"$h(\mathbf{x}) = \frac{1}{4}x_1^2 - x_2 = 0$"
+    
+
+class CircleEc():
+    name = "Circle"
+
+    @staticmethod
+    def func(t):
+        return 2 * np.array([[np.cos(t), np.sin(t)]]).T
+
+    @staticmethod
+    def normal(x1, x2):
+        return 2 * np.array([[x1, x2]]).T
+    
+    @staticmethod
+    def tangent(x1, x2):
+        return np.array([[-x2, x1]]).T
+    
+    @staticmethod
+    def equation():
+        return r"$h(\mathbf{x}) = \mathbf{x}^\top\mathbf{x} - 4 = 0$"
+    
+
+class EllipseEc():
+    name = "Ellipse"
+    
+    @staticmethod
+    def func(t):
+        return np.array([[3 * np.cos(t), 1 * np.sin(t)]]).T
+
+    @staticmethod
+    def normal(x1, x2):
+        return np.array([[(2/9) * x1, 2 * x2]]).T
+    
+    @staticmethod
+    def tangent(x1, x2):
+        return np.array([[-2 * x2, (2/9) * x1]]).T
+    
+    @staticmethod
+    def equation():
+        return r"$h(\mathbf{x}) = \mathbf{x}^\top\mathbf{Q}\mathbf{x} - 1 = 0$"
