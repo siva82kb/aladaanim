@@ -151,7 +151,27 @@ class FlippedGaussian:
             [self.Q[0, 0] - _dv1 ** 2, 0.5 * (self.Q[1, 0] + self.Q[0, 1]) - _dv1 * _dv2],
             [0.5 * (self.Q[1, 0] + self.Q[0, 1]) - _dv1 * _dv2, self.Q[1, 1] - _dv2 ** 2]
         ])
+
+
+class RectangularHyperbola:
+    def __init__(self):
+        self.name = 'Rectangular Hyperbola'
+        self.title = r"$-x_1 x_2$"
+
+    def func(self, x1, x2):
+        return - x1 * x2
     
+    def grad(self, x1, x2):
+        return np.array([
+            [-x2],
+            [-x1]
+        ])
+    
+    def hessian(self, x1, x2):
+        return np.array([
+            [0, -1],
+            [-1, 0]
+        ])
 
 
 # Gradient Descent Class
@@ -240,3 +260,90 @@ class EllipseEc():
     @staticmethod
     def equation():
         return r"$h(\mathbf{x}) = \mathbf{x}^\top\mathbf{Q}\mathbf{x} - 1 = 0$"
+    
+
+class ObliqueEllipseEc():
+    name = "Ellipse"
+    V = (1 / np.sqrt(2)) * np.array([[1,  1],
+                                     [1, -1]])
+    L = np.diag([1, np.sqrt(5)])
+    Q = V @ L @ L @ V.T
+
+    @staticmethod
+    def func(t):
+        _v = np.array([[np.cos(t), np.sin(t)]]).T
+        return ObliqueEllipseEc.V @ np.linalg.inv(ObliqueEllipseEc.L) @ _v
+
+    @staticmethod
+    def normal(x1, x2):
+        return 2 * ObliqueEllipseEc.Q @ np.array([[x1, x2]]).T
+    
+    @staticmethod
+    def tangent(x1, x2):
+        _n = ObliqueEllipseEc.normal(x1, x2)
+        return np.array([[_n[1, 0], -_n[0, 0]]]).T
+    
+    @staticmethod
+    def equation():
+        return r"$h(\mathbf{x}) = \mathbf{x}^\top\mathbf{Q}\mathbf{x} - 1 = 0$"
+    
+
+class Ellipse2Ec():
+    name = "Ellipse2"
+    
+    @staticmethod
+    def func(t):
+        return np.array([[np.cos(t), 0.5 * np.sin(t)]]).T
+
+    @staticmethod
+    def normal(x1, x2):
+        return np.array([[-4 * x2, 2 * x1]]).T
+    
+    @staticmethod
+    def tangent(x1, x2):
+        return np.array([[2 * x1, 4 * x2]]).T
+    
+    @staticmethod
+    def equation():
+        return r"$h(\mathbf{x}) = x_1^2 + 2x_2^2 - 1 = 0$"
+
+
+class Linear2Ec():
+    name = "Ellipse2"
+    c = np.array([[4., 8.]]).T
+
+    @staticmethod
+    def func(t):
+        return np.array([[t, - t / 2]]).T + np.array([[0.5, 1.]]).T
+
+    @staticmethod
+    def normal(x1, x2):
+        return Linear2Ec.c
+    
+    @staticmethod
+    def tangent(x1, x2):
+        return np.array([[0., -1.], [1., 0.]]) @ Linear2Ec.c
+    
+    @staticmethod
+    def equation():
+        return r"$h(\mathbf{x}) = 4x_1 + 8x_2 - 10 = 0$"
+
+
+# class RectHyperbolaEc():
+#     name = "RectangularHyperbola"
+    
+#     @staticmethod
+#     def func(t):
+#         return np.array([[np.cos(t), 0.5 * np.sin(t)]]).T
+
+#     @staticmethod
+#     def normal(x1, x2):
+#         return np.array([[-4 * x2, 2 * x1]]).T
+    
+#     @staticmethod
+#     def tangent(x1, x2):
+#         return np.array([[2 * x1, 4 * x2]]).T
+    
+#     @staticmethod
+#     def equation():
+#         return r"$h(\mathbf{x}) = x_1^2 + 2x_2^2 - 1 = 0$"

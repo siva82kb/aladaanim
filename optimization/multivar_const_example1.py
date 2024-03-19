@@ -1,9 +1,8 @@
 """
-Script to demonstrate the normal and tangent spaces in the constrained 
-optimization problem.
+Script to demonstrate Lagrange multipliers method through example 1.
 
 Author: Sivakumar Balasubramanian
-Date: 17 March 2024
+Date: 19 March 2024
 """
 
 import numpy as np
@@ -26,6 +25,7 @@ def reset_params():
     # Reset the solution
     t = np.random.rand(1)[0] * 7 - 3.5
     update()
+
 
 def update():
     global funclass, ecfunclass, t, xc, norms, tangs
@@ -199,24 +199,6 @@ def on_press(event):
         plt.close(fig)
         return
 
-    # Choose which function to minimize.
-    if event.key in function_dict.keys():
-        funclass = function_dict[event.key]
-        # Reset variables
-        reset_params()
-        ax.cla()
-    
-    # Return if no function has been selected.
-    if funclass is None:
-        return
-    
-    # Choose which equality constraint to use.
-    if event.key in ecfunction_dict.keys():
-        ecfunclass = ecfunction_dict[event.key]
-        # Reset variables
-        reset_params()
-        ax.cla()
-
     # Chekc if the solution needs to be updated.
     if event.key == 'right':
         # Compute the next step        
@@ -228,11 +210,11 @@ def on_press(event):
         ax.cla()
     elif event.key == 'shift+right':
         # Compute the next step        
-        t += 0.01
+        t += 0.001
         ax.cla()
     elif event.key == 'shift+left':
         # Compute the next step        
-        t -= 0.01
+        t -= 0.001
         ax.cla()
     elif event.key in ['r', 'R']:
         # Reset the plot
@@ -240,13 +222,10 @@ def on_press(event):
         ax.cla()
     
     # Wrap the value of t
-    if ecfunclass.name == "Parabola":
-        t = np.min([np.pi, np.max([-np.pi, t])])
-    else:
-        if t > np.pi:
-            t = -np.pi
-        elif t < -np.pi:
-            t = np.pi
+    if t > np.pi:
+        t = -np.pi
+    elif t < -np.pi:
+        t = np.pi
     
     # Update
     update()
@@ -260,28 +239,9 @@ def on_press(event):
 
 
 if __name__ == "__main__":
-    # Function dictionary
-    function_dict = {
-        '0': aladaopt.Circle(xmin=np.array([0.5, 1.5])),
-        '1': aladaopt.Ellipse(xmin=np.array([1.5, 1.5]),
-                              Q=np.array([[3, 1], [1, 2]])),
-        '2': aladaopt.Rosenbrock(a=1, b=5),
-        '3': aladaopt.Quartic(xmin=np.array([1, 2]), a=2, b=5, c=3),
-        '4': aladaopt.FlippedGaussian(xmin=np.array([-0.5, 1]),
-                                      Q=np.linalg.inv(np.array([[5, 2], [2, 3]])))
-    }
-
-    # Equality function
-    ecfunction_dict = {
-        'ctrl+0': aladaopt.ParabolaEc(),
-        'ctrl+1': aladaopt.CircleEc(),
-        'ctrl+2': aladaopt.EllipseEc(),
-        'ctrl+3': aladaopt.ObliqueEllipseEc(),
-    }
-
     # Function and Method ID
-    funclass = function_dict["0"]
-    ecfunclass = ecfunction_dict["ctrl+0"]
+    funclass = aladaopt.Circle(xmin=np.array([0, 0]))
+    ecfunclass = aladaopt.EllipseEc()
     
     # Create the figure and the axis.
     fig = plt.figure(figsize=(13, 7.8))

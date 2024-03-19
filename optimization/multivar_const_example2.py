@@ -1,9 +1,8 @@
 """
-Script to demonstrate the normal and tangent spaces in the constrained 
-optimization problem.
+Script to demonstrate Lagrange multipliers method through example 2.
 
 Author: Sivakumar Balasubramanian
-Date: 17 March 2024
+Date: 19 March 2024
 """
 
 import numpy as np
@@ -27,6 +26,7 @@ def reset_params():
     t = np.random.rand(1)[0] * 7 - 3.5
     update()
 
+
 def update():
     global funclass, ecfunclass, t, xc, norms, tangs
     xc = ecfunclass.func(t)
@@ -37,23 +37,22 @@ def update():
 def plot_contour():
     global funclass, ecfunclass, t, xc, norms, tangs
     # Generate data for plotting
-    x1 = np.linspace(-np.pi, np.pi, 500)
-    x2 = np.linspace(-np.pi, np.pi, 500)
+    x1 = np.linspace(-4, 4, 500)
+    x2 = np.linspace(-4, 4, 500)
     X1, X2 = np.meshgrid(x1, x2)
     Z = funclass.func(X1, X2)
 
     # Plotting the contour
-    if funclass.name == "Flipped Gaussian":
-        contours = ax.contour(X1, X2, Z, levels=np.logspace(-5, 5, 40),
-                              cmap='Greys_r', linewidths=0.25, linestyles='dashed')
-    else:
-        contours = ax.contour(X1, X2, Z, levels=np.logspace(-1, 5.5, 20),
-                              cmap='Greys_r', linewidths=0.25, linestyles='dashed')
+    _levels = np.logspace(-1, np.log10(32), 10)
+    contours = ax.contour(X1, X2, Z, levels=np.concatenate((-_levels[::-1], _levels)),
+                          cmap='Greys_r', linewidths=0.25, linestyles='dashed')
     for c in contours.collections:
         c.set_dashes([(0, (5.0, 5.0))])
+    
     # Find the value of the fucntion at the current equality constraint point
     _fxc = funclass.func(xc[0, 0], xc[1, 0])
-    ax.contour(X1, X2, Z, levels=[_fxc], linewidths=1, colors='tab:green')
+    ax.contour(X1, X2, Z, levels=[_fxc], linewidths=1, colors='tab:green',
+               linestyles='solid')
     
     # Plot gradient at the current point
     _grad = funclass.grad(xc[0, 0], xc[1, 0])
@@ -62,7 +61,7 @@ def plot_contour():
              head_length=0.2, fc='tab:green', ec='tab:green')
 
     # h function.
-    _t = np.linspace(-np.pi, np.pi, 500)
+    _t = np.linspace(-5, 5, 500)
     _h = np.hstack([ecfunclass.func(__t) for __t in _t])
 
     # Plot the search trajectory
@@ -72,16 +71,17 @@ def plot_contour():
     ax.plot(xc[0, 0], xc[1, 0], 'ko', markersize=5)
     
     # Plot tangent and normal spaces
-    _p1 = - 10 * tangs
-    _p2 = 10 * tangs
+    _p1 = - 10. * tangs
+    _p2 = 10. * tangs
     ax.plot([_p1[0, 0], _p2[0, 0]], [_p1[1, 0], _p2[1, 0]], 'tab:red',
             lw=0.5, ls="dotted", alpha=0.5)
+    print(_p1, xc)
     _p1 += xc
     _p2 += xc
     ax.plot([_p1[0, 0], _p2[0, 0]], [_p1[1, 0], _p2[1, 0]], 'tab:red',
             lw=1, alpha=0.6)
-    _p1 = - 10 * norms
-    _p2 = 10 * norms
+    _p1 = - 10. * norms
+    _p2 = 10. * norms
     ax.plot([_p1[0, 0], _p2[0, 0]], [_p1[1, 0], _p2[1, 0]], 'tab:blue',
             lw=0.5, ls="dotted", alpha=0.5)
     _nsn = norms / np.linalg.norm(norms)
@@ -101,8 +101,8 @@ def plot_contour():
     ax.spines['left'].set_color('#bbbbbb')
 
     # Set xlims and ylims
-    ax.set_xlim(-np.pi, np.pi)
-    ax.set_ylim(-np.pi, np.pi)
+    ax.set_xlim(-4, 4)
+    ax.set_ylim(-4, 4)
     ax.set_xticklabels([])
     ax.set_yticklabels([])
 
@@ -113,14 +113,14 @@ def plot_contour():
 def plot_const_func():
     axins.cla()
     # Update the inset plot.
-    _t = np.linspace(-np.pi, np.pi, 500)
+    _t = np.linspace(-4, 4, 500)
     _h = np.hstack([ecfunclass.func(__t) for __t in _t])
     _f = funclass.func(_h[0], _h[1])
     axins.plot(_t, _f, 'tab:red', lw=2.0, alpha=0.7, label=r"$f(\mathbf{x})$")
     axins.plot(t, funclass.func(xc[0, 0], xc[1, 0]), 'black', marker='o',
                markersize=4, alpha=0.5)
     # Axis limits
-    axins.set_xlim(-np.pi, np.pi)
+    axins.set_xlim(-4, 4)
     _fmin, _fmax = np.min(_f), np.max(_f)
     _delf = 0.1 * (_fmax - _fmin)
     # x and y lines
@@ -148,7 +148,7 @@ def update_text():
     ax2.set_ylim(-1.1, 1.2)
 
     # Text positions
-    xpos, ypos, delypos = 0.1, 0.75, 0.1
+    xpos, ypos, delypos = 0.1, 0.35, 0.1
 
     # Instruction.
     ax2.text(0.1, 1.2,
@@ -168,6 +168,15 @@ def update_text():
              fontsize=12, verticalalignment='center',
              horizontalalignment='left', color='gray', style='italic')
 
+    ax2.text(0.1, 0.8, "minimize", fontsize=14, verticalalignment='top',
+             horizontalalignment='left')
+    ax2.text(0.3, 0.8, "$- x_1 x_2$", fontsize=14, verticalalignment='top',
+             horizontalalignment='left')
+    ax2.text(0.1, 0.7, "subject to", fontsize=14, verticalalignment='top',
+             horizontalalignment='left')
+    ax2.text(0.3, 0.7, "$4x_1 + 8x_2 - 10 = 0$", fontsize=14, verticalalignment='top',
+             horizontalalignment='left')
+
     # Current point detials
     j = 0
     _xc = f"{np.array2string(xc.T[0], precision=3, floatmode='fixed')}"
@@ -183,6 +192,7 @@ def update_text():
              fontsize=14)
     j += 1
     _hgv = ecfunclass.normal(xc[0, 0], xc[1, 0]).T[0]
+    print(_hgv)
     _hgv /= np.linalg.norm(_hgv)
     _hg = f"{np.array2string(_hgv, precision=3, floatmode='fixed')}"
     ax2.text(xpos, ypos - j * delypos,
@@ -199,24 +209,6 @@ def on_press(event):
         plt.close(fig)
         return
 
-    # Choose which function to minimize.
-    if event.key in function_dict.keys():
-        funclass = function_dict[event.key]
-        # Reset variables
-        reset_params()
-        ax.cla()
-    
-    # Return if no function has been selected.
-    if funclass is None:
-        return
-    
-    # Choose which equality constraint to use.
-    if event.key in ecfunction_dict.keys():
-        ecfunclass = ecfunction_dict[event.key]
-        # Reset variables
-        reset_params()
-        ax.cla()
-
     # Chekc if the solution needs to be updated.
     if event.key == 'right':
         # Compute the next step        
@@ -228,11 +220,11 @@ def on_press(event):
         ax.cla()
     elif event.key == 'shift+right':
         # Compute the next step        
-        t += 0.01
+        t += 0.001
         ax.cla()
     elif event.key == 'shift+left':
         # Compute the next step        
-        t -= 0.01
+        t -= 0.001
         ax.cla()
     elif event.key in ['r', 'R']:
         # Reset the plot
@@ -240,13 +232,10 @@ def on_press(event):
         ax.cla()
     
     # Wrap the value of t
-    if ecfunclass.name == "Parabola":
-        t = np.min([np.pi, np.max([-np.pi, t])])
-    else:
-        if t > np.pi:
-            t = -np.pi
-        elif t < -np.pi:
-            t = np.pi
+    if t > 4:
+        t = 4
+    elif t < -4:
+        t = -4
     
     # Update
     update()
@@ -260,28 +249,9 @@ def on_press(event):
 
 
 if __name__ == "__main__":
-    # Function dictionary
-    function_dict = {
-        '0': aladaopt.Circle(xmin=np.array([0.5, 1.5])),
-        '1': aladaopt.Ellipse(xmin=np.array([1.5, 1.5]),
-                              Q=np.array([[3, 1], [1, 2]])),
-        '2': aladaopt.Rosenbrock(a=1, b=5),
-        '3': aladaopt.Quartic(xmin=np.array([1, 2]), a=2, b=5, c=3),
-        '4': aladaopt.FlippedGaussian(xmin=np.array([-0.5, 1]),
-                                      Q=np.linalg.inv(np.array([[5, 2], [2, 3]])))
-    }
-
-    # Equality function
-    ecfunction_dict = {
-        'ctrl+0': aladaopt.ParabolaEc(),
-        'ctrl+1': aladaopt.CircleEc(),
-        'ctrl+2': aladaopt.EllipseEc(),
-        'ctrl+3': aladaopt.ObliqueEllipseEc(),
-    }
-
     # Function and Method ID
-    funclass = function_dict["0"]
-    ecfunclass = ecfunction_dict["ctrl+0"]
+    funclass = aladaopt.RectangularHyperbola()
+    ecfunclass = aladaopt.Linear2Ec()
     
     # Create the figure and the axis.
     fig = plt.figure(figsize=(13, 7.8))
